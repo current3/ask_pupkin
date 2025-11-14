@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+{% block content %}
+
+<h2 class="mb-3 border-bottom pb-2">New Question</h2>
+
+<form method="post">
+    <div class="text-danger mb-3">
+        Sorry, some fields are filled incorrectly.
+    </div>
+
+    <div class="mb-3 row">
+        <label class="col-sm-2 col-form-label">Title</label>
+        <div class="col-sm-10">
+            <input type="text" class="form-control" maxlength="255"
+                   placeholder="How to build a moon park ?">
+            <div class="small text-danger">Error: title is required</div>
+        </div>
+    </div>
+
+    <div class="mb-3 row">
+        <label class="col-sm-2 col-form-label">Text</label>
+        <div class="col-sm-10">
+            <textarea class="form-control" rows="6"
+                      placeholder="Really, how? Have no idea about it"></textarea>
+            <div class="small text-danger">Error: text is required</div>
+        </div>
+    </div>
+
+    <div class="mb-4 row">
+        <label class="col-sm-2 col-form-label">Tags</label>
+        <div class="col-sm-10">
+            <input type="text" class="form-control"
+                   placeholder="moon, park, puzzle">
+            <div class="small text-danger">Error: no more than 3 tags</div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="offset-sm-2 col-sm-10">
+            <button class="btn btn-primary" type="submit">ASK!</button>
+        </div>
+    </div>
+</form>
+
+{% endblock %}

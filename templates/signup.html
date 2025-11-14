@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% block content %}
+
+<h2 class="mb-3 border-bottom pb-2">Registration</h2>
+
+<div class="text-danger mb-3">
+    Sorry, this email address already registered!
+</div>
+
+<form>
+    <div class="mb-3">
+        <label class="form-label">Login</label>
+        <input type="text" class="form-control" value="dr_pepper">
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">Email</label>
+        <input type="email" class="form-control" value="drpepper@mail.ru">
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">NickName</label>
+        <input type="text" class="form-control" value="Dr. Pepper">
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">Password</label>
+        <input type="password" class="form-control" value="12345678">
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">Repeat password</label>
+        <input type="password" class="form-control" value="12345678">
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">Upload avatar</label>
+        <input type="file" class="form-control">
+    </div>
+
+    <button class="btn btn-primary">Register!</button>
+</form>
+
+{% endblock %}

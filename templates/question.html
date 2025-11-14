@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="mb-4 border p-3">
+    <h2 class="mb-3">{{ question.title }}</h2>
+    <p class="mb-2">
+        {{ question.text }}
+    </p>
+    <div class="small">
+        Tags:
+        {% for t in question.tags %}
+            <a href="/tag/{{ t }}/" class="text-decoration-none">{{ t }}</a>{% if not forloop.last %}, {% endif %}
+        {% endfor %}
+    </div>
+</div>
+
+{% for a in answers %}
+<div class="mb-3 p-3 border">
+    <div class="d-flex">
+        <div class="me-3 text-center" style="width:60px;">
+            <img src="/static/img/avatar.png"
+                 class="border mb-2"
+                 style="width:40px;height:40px;object-fit:cover;" alt="avatar">
+            <div class="border py-1 mb-1">{{ a.rating|default:"5" }}</div>
+            <div class="small">
+                <button class="btn btn-light border w-100 mb-1">+</button>
+                <button class="btn btn-light border w-100">-</button>
+            </div>
+        </div>
+
+        <div class="flex-grow-1">
+            <p class="mb-2">
+                {{ a.text }}
+            </p>
+            <div class="form-check">
+                <input class="form-check-input" type="checkbox" disabled {% if a.is_correct %}checked{% endif %}>
+                <label class="form-check-label">Correct!</label>
+            </div>
+        </div>
+    </div>
+</div>
+{% endfor %}
+
+{% include "paginator.html" with page_obj=answers %}
+
+<div class="mt-4 border-top pt-3">
+    <h5 class="mb-3">Enter your answer here.</h5>
+    <form>
+        <div class="mb-3">
+            <textarea class="form-control" rows="4" placeholder="Enter your answer here."></textarea>
+        </div>
+        <button class="btn btn-primary">Answer</button>
+    </form>
+</div>
+
+{% endblock %}

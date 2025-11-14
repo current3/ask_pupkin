@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% block content %}
+
+<h2 class="mb-3 border-bottom pb-2">Log In</h2>
+
+<div class="text-danger mb-3">
+    Sorry, wrong password!
+</div>
+
+<form>
+    <div class="mb-3">
+        <label class="form-label">Login</label>
+        <input type="text" class="form-control" placeholder="Enter your login here">
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">Password</label>
+        <input type="password" class="form-control" value="12345678">
+    </div>
+
+    <button class="btn btn-primary mb-2">Log in!</button><br>
+    <a href="/signup/">create new account</a>
+</form>
+
+{% endblock %}
