@@ -1,7 +1,20 @@
-venv/
+# Python
 __pycache__/
-*.pyc
-uploads/
-*.sqlite3
+*.py[cod]
+*.egg-info/
+.env
+.env.*
+.venv/
+venv/
+
+# Django
+db.sqlite3
+media/
+staticfiles/
+
+# IDE
+.vscode/
 .idea/
-*.log
+
+# OS
+.DS_Store
