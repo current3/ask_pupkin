@@ -37,11 +37,11 @@
             </p>
 
             <div class="small">
-                <a href="/question/{{ q.id }}/" class="me-3">answer ({{ q.answers|default:3 }})</a>
+                <a href="/question/{{ q.id }}/" class="me-3">answer ({{ q.answers.count }})</a>
 
                 Tags:
-                {% for t in q.tags %}
-                    <a href="/tag/{{ t }}/" class="text-decoration-none">{{ t }}</a>{% if not forloop.last %}, {% endif %}
+                {% for t in q.tags.all %}
+                    <a href="/tag/{{ t.name }}/" class="text-decoration-none">{{ t.name }}</a>{% if not forloop.last %}, {% endif %}
                 {% endfor %}
             </div>
 
