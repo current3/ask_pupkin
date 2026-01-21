@@ -1,69 +1,139 @@
 {% extends "base.html" %}
 {% block content %}
 
-<h2 class="mb-3 border-bottom pb-2">New Question</h2>
+<div class="container" style="max-width: 860px;">
 
-<form method="post" novalidate>
-    {% csrf_token %}
+  <div class="d-flex align-items-center justify-content-between mb-3">
+    <h2 class="mb-0">Ask a Question</h2>
+    <a href="/" class="btn btn-outline-secondary btn-sm">← Back</a>
+  </div>
 
-    {# Общая ошибка формы (например "поля заполнены неверно") #}
-    {% if form.errors %}
-        <div class="text-danger mb-3">
-            Sorry, some fields are filled incorrectly.
-        </div>
-    {% endif %}
+  {% if form.errors %}
+    <div class="alert alert-danger">
+      <strong>Fix the errors</strong> and try again.
+    </div>
+  {% endif %}
 
-    {# non_field_errors — ошибки вида "пароли не совпали" (если будут) #}
-    {% if form.non_field_errors %}
-        <div class="text-danger mb-3">
+  <div class="card shadow-sm">
+    <div class="card-body">
+
+      <form method="post" novalidate>
+        {% csrf_token %}
+
+        {% if form.non_field_errors %}
+          <div class="alert alert-danger py-2">
             {{ form.non_field_errors }}
-        </div>
-    {% endif %}
+          </div>
+        {% endif %}
 
-    <div class="mb-3 row">
-        <label class="col-sm-2 col-form-label">Title</label>
-        <div class="col-sm-10">
-            {{ form.title }}
-            {% if form.title.errors %}
-                <div class="small text-danger">
-                    {{ form.title.errors|striptags }}
-                </div>
-            {% endif %}
+        {# TITLE #}
+        <div class="mb-3">
+          <label class="form-label fw-semibold">Title</label>
+          {{ form.title }}
+          <div class="form-text">
+            One short sentence. Example: <em>How to paginate answers in Django?</em>
+          </div>
+          {% if form.title.errors %}
+            <div class="small text-danger mt-1">{{ form.title.errors|striptags }}</div>
+          {% endif %}
         </div>
-    </div>
 
-    <div class="mb-3 row">
-        <label class="col-sm-2 col-form-label">Text</label>
-        <div class="col-sm-10">
-            {{ form.text }}
-            {% if form.text.errors %}
-                <div class="small text-danger">
-                    {{ form.text.errors|striptags }}
-                </div>
-            {% endif %}
+        {# TEXT #}
+        <div class="mb-3">
+          <div class="d-flex align-items-center justify-content-between">
+            <label class="form-label fw-semibold mb-0">Text</label>
+            <span class="text-muted small" id="text-counter">0 chars</span>
+          </div>
+          {{ form.text }}
+          <div class="form-text">
+            Add details: what you tried, what you expected, what you got.
+          </div>
+          {% if form.text.errors %}
+            <div class="small text-danger mt-1">{{ form.text.errors|striptags }}</div>
+          {% endif %}
         </div>
-    </div>
 
-    <div class="mb-4 row">
-        <label class="col-sm-2 col-form-label">Tags</label>
-        <div class="col-sm-10">
-            {{ form.tags }}
-            {% if form.tags.errors %}
-                <div class="small text-danger">
-                    {{ form.tags.errors|striptags }}
-                </div>
-            {% endif %}
-            {% if form.tags.help_text %}
-                <div class="form-text">{{ form.tags.help_text }}</div>
-            {% endif %}
+        {# TAGS #}
+        <div class="mb-4">
+          <label class="form-label fw-semibold">Tags</label>
+          {{ form.tags }}
+          <div class="form-text">
+            Up to 3 tags. Use spaces or commas. Example: <code>django ajax csrf</code>
+          </div>
+          {% if form.tags.errors %}
+            <div class="small text-danger mt-1">{{ form.tags.errors|striptags }}</div>
+          {% endif %}
         </div>
-    </div>
 
-    <div class="row">
-        <div class="offset-sm-2 col-sm-10">
-            <button class="btn btn-primary" type="submit">ASK!</button>
+        {# ACTIONS #}
+        <div class="d-flex flex-wrap gap-2">
+          <button class="btn btn-primary" type="submit">Publish</button>
+          <button class="btn btn-outline-secondary" type="button" onclick="togglePreview()">Preview</button>
+          <a class="btn btn-outline-danger" href="/ask/">Reset</a>
         </div>
+      </form>
+
+      {# PREVIEW #}
+      <div id="preview-box" class="mt-4 d-none">
+        <hr>
+        <h5 class="mb-2">Preview</h5>
+        <div class="p-3 border rounded bg-light">
+          <h4 id="preview-title" class="mb-2 text-break">—</h4>
+          <div id="preview-text" class="text-break" style="white-space: pre-wrap;">—</div>
+          <div class="mt-3 small text-muted">
+            Tags: <span id="preview-tags">—</span>
+          </div>
+        </div>
+      </div>
+
     </div>
-</form>
+  </div>
+</div>
+
+<script>
+  document.querySelectorAll('input[type="text"], textarea').forEach(el => {
+    if (!el.classList.contains('form-control')) el.classList.add('form-control');
+  });
+
+  const titleEl = document.querySelector('input[name="title"]');
+  const textEl  = document.querySelector('textarea[name="text"]');
+  const tagsEl  = document.querySelector('input[name="tags"]');
+
+  const counterEl = document.getElementById('text-counter');
+  const previewBox = document.getElementById('preview-box');
+
+  function updateCounter() {
+    if (!textEl) return;
+    counterEl.textContent = (textEl.value.length || 0) + " chars";
+  }
+
+  function updatePreview() {
+    document.getElementById('preview-title').textContent = (titleEl?.value || '').trim() || '—';
+    document.getElementById('preview-text').textContent  = (textEl?.value  || '').trim() || '—';
+
+    let tags = (tagsEl?.value || '').trim();
+    if (!tags) tags = '—';
+    document.getElementById('preview-tags').textContent = tags;
+  }
+
+  function togglePreview() {
+    updatePreview();
+    previewBox.classList.toggle('d-none');
+  }
+
+  if (textEl) {
+    updateCounter();
+    textEl.addEventListener('input', () => {
+      updateCounter();
+      if (!previewBox.classList.contains('d-none')) updatePreview();
+    });
+  }
+  if (titleEl) titleEl.addEventListener('input', () => {
+    if (!previewBox.classList.contains('d-none')) updatePreview();
+  });
+  if (tagsEl) tagsEl.addEventListener('input', () => {
+    if (!previewBox.classList.contains('d-none')) updatePreview();
+  });
+</script>
 
 {% endblock %}

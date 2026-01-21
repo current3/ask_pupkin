@@ -6,7 +6,7 @@ from django.conf import settings
 class Profile(models.Model):
     user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="profile")
     nick = models.CharField(max_length=64, unique=True)
-    avatar = models.ImageField(upload_to="avatars/", blank=True, null=True)
+    avatar = models.ImageField(upload_to="uploads/avatars/", blank=True, null=True)
 
     def __str__(self) -> str:
         return self.nick

@@ -1,56 +1,151 @@
 {% extends "base.html" %}
 {% block content %}
 
-<div class="d-flex align-items-center mb-3 border-bottom pb-2">
-    <h2 class="me-4 mb-0">New Questions</h2>
+<div class="d-flex align-items-center justify-content-between border-bottom pb-2 mb-3">
+  <div class="d-flex align-items-center gap-3">
+    <h2 class="mb-0">New Questions</h2>
     <a href="/hot/" class="text-decoration-none">Hot Questions</a>
+  </div>
+  <div class="small text-muted">
+    {{ questions.paginator.count }} questions
+  </div>
 </div>
 
 {% for q in questions %}
-<div class="question-card border p-3 mb-3">
+<div class="card shadow-sm mb-3">
+  <div class="card-body">
+    <div class="d-flex gap-3">
 
-    <div class="d-flex">
+      <div class="text-center" style="width: 92px;">
+        <div class="btn-group-vertical w-100" role="group" aria-label="vote">
 
-        <div class="me-3 text-center" style="width:60px;">
+          {% if user.is_authenticated %}
+            <button class="btn btn-outline-success btn-sm"
+                    style="height:34px"
+                    type="button"
+                    onclick="voteQuestion({{ q.id }}, 'like')">+</button>
+          {% else %}
+            <a class="btn btn-outline-success btn-sm"
+               style="height:34px"
+               href="/login/?continue={{ request.path }}">+</a>
+          {% endif %}
 
-            <button class="btn btn-light border p-1 w-100 small">+</button>
-
-            <div class="border p-1 my-1">{{ q.rating|default:5 }}</div>
-
-            <button class="btn btn-light border p-1 w-100 small">-</button>
-
-            <img src="/static/img/avatar.png"
-                 class="border mt-3"
-                 style="width:45px;height:45px;object-fit:cover;">
-        </div>
-
-        <div class="flex-grow-1">
-
-            <h5 class="mb-1">
-                <a href="/question/{{ q.id }}/" class="text-decoration-none text-primary">
-                    {{ q.title }}
-                </a>
-            </h5>
-
-            <p class="small text-muted mb-1">
-                {{ q.text }}
-            </p>
-
-            <div class="small">
-                <a href="/question/{{ q.id }}/" class="me-3">answer ({{ q.answers.count }})</a>
-
-                Tags:
-                {% for t in q.tags.all %}
-                    <a href="/tag/{{ t.name }}/" class="text-decoration-none">{{ t.name }}</a>{% if not forloop.last %}, {% endif %}
-                {% endfor %}
+            <div id="q-rating-{{ q.id }}"
+                class="border rounded my-1 fw-semibold"
+                style="
+                height:34px;
+                width:100%;
+                display:flex;
+                align-items:center;
+                justify-content:center;
+                text-align:center;
+                padding:0;
+                font-variant-numeric: tabular-nums;
+                background:#f8f9fa;
+                ">
+            {{ q.rating }}
             </div>
 
-        </div>
-    </div>
+          {% if user.is_authenticated %}
+            <button class="btn btn-outline-danger btn-sm"
+                    style="height:34px"
+                    type="button"
+                    onclick="voteQuestion({{ q.id }}, 'dislike')">−</button>
+          {% else %}
+            <a class="btn btn-outline-danger btn-sm"
+               style="height:34px"
+               href="/login/?continue={{ request.path }}">−</a>
+          {% endif %}
 
+        </div>
+
+        <div class="mt-3">
+          {% if q.author.avatar %}
+            <img src="{{ q.author.avatar.url }}"
+                 class="rounded-circle border"
+                 style="width:46px;height:46px;object-fit:cover;"
+                 alt="avatar">
+          {% else %}
+            <img src="/static/img/avatar.png"
+                 class="rounded-circle border"
+                 style="width:46px;height:46px;object-fit:cover;"
+                 alt="avatar">
+          {% endif %}
+        </div>
+      </div>
+
+      {# ================== CONTENT ================== #}
+      <div class="flex-grow-1">
+
+        <div class="d-flex align-items-start justify-content-between gap-2">
+          <h5 class="mb-1">
+            <a href="/question/{{ q.id }}/" class="text-decoration-none">
+              {{ q.title }}
+            </a>
+          </h5>
+          <span class="badge text-bg-light">
+            answers: {{ q.answers.count }}
+          </span>
+        </div>
+
+        <p class="text-muted mb-2"
+           style="
+             display:-webkit-box;
+             -webkit-line-clamp:3;
+             -webkit-box-orient:vertical;
+             overflow:hidden;
+           ">
+          {{ q.text }}
+        </p>
+
+        <div class="d-flex flex-wrap align-items-center gap-2">
+          <a class="btn btn-sm btn-outline-primary"
+             href="/question/{{ q.id }}/">
+            Open
+          </a>
+
+          <span class="small text-muted">Tags:</span>
+
+          {% for t in q.tags.all %}
+            <a href="/tag/{{ t.name }}/"
+               class="badge rounded-pill text-bg-secondary text-decoration-none">
+              {{ t.name }}
+            </a>
+          {% empty %}
+            <span class="small text-muted">no tags</span>
+          {% endfor %}
+        </div>
+
+      </div>
+
+    </div>
+  </div>
 </div>
 {% endfor %}
 
 {% include "paginator.html" with page_obj=questions %}
+
+<script>
+function getCookie(name) {
+  let m = document.cookie.match('(^|;)\\s*' + name + '\\s*=\\s*([^;]+)');
+  return m ? m.pop() : '';
+}
+const csrftoken = getCookie('csrftoken');
+
+function voteQuestion(qid, type) {
+  $.ajax({
+    url: "{% url 'ajax_question_vote' %}",
+    method: "POST",
+    headers: {"X-CSRFToken": csrftoken},
+    data: {id: qid, type: type},
+    success: function(resp) {
+      $("#q-rating-" + qid).text(resp.rating);
+    },
+    error: function(xhr) {
+      console.log("vote error:", xhr.status, xhr.responseText);
+    }
+  });
+}
+</script>
 
 {% endblock %}

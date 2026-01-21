@@ -6,8 +6,13 @@ from django.urls import reverse
 from django.contrib.auth import login, logout
 from django.contrib.auth.decorators import login_required
 
+from django.http import JsonResponse
+from django.views.decorators.http import require_POST
+from django.db import transaction
+from django.db import models
+
 from .forms import AnswerForm, AskForm, LoginForm, ProfileEditForm, SignupForm
-from .models import Answer, Question, Tag
+from .models import Answer, Question, Tag, QuestionLike, AnswerLike
 
 
 def paginate(objects, request, per_page=20):
@@ -55,6 +60,7 @@ def login_view(request):
         form = LoginForm()
 
     return render(request, "login.html", {"form": form, "continue": cont})
+
 
 def signup_view(request):
     if request.method == "POST":
@@ -115,6 +121,7 @@ def ask_view(request):
 
 PER_PAGE = 10
 
+
 def question_view(request, id):
     question = get_object_or_404(Question, pk=id)
 
@@ -141,8 +148,104 @@ def question_view(request, id):
     else:
         form = AnswerForm()
 
-    return render(request, "question.html", {
-        "question": question,
-        "answers": answers_page,
-        "form": form,
-    })
+    return render(
+        request,
+        "question.html",
+        {
+            "question": question,
+            "answers": answers_page,
+            "form": form,
+        },
+    )
+
+@require_POST
+@login_required(login_url="/login/")
+def ajax_question_vote(request):
+    qid = request.POST.get("id")
+    vtype = request.POST.get("type")
+
+    if not qid:
+        return JsonResponse({"error": "no_id"}, status=400)
+    if vtype not in ("like", "dislike"):
+        return JsonResponse({"error": "bad_type"}, status=400)
+
+    question = get_object_or_404(Question, pk=qid)
+    value = 1 if vtype == "like" else -1
+
+    QuestionLike.objects.update_or_create(
+        user=request.user.profile,
+        question=question,
+        defaults={"value": value},
+    )
+
+    rating = (
+        QuestionLike.objects.filter(question=question)
+        .aggregate(s=models.Sum("value"))["s"]
+        or 0
+    )
+
+    question.rating = rating
+    question.save(update_fields=["rating"])
+
+    return JsonResponse({"rating": rating})
+
+
+@require_POST
+@login_required(login_url="/login/")
+def ajax_answer_vote(request):
+    aid = request.POST.get("id")
+    vtype = request.POST.get("type")
+
+    if not aid:
+        return JsonResponse({"error": "no_id"}, status=400)
+    if vtype not in ("like", "dislike"):
+        return JsonResponse({"error": "bad_type"}, status=400)
+
+    answer = get_object_or_404(Answer, pk=aid)
+    value = 1 if vtype == "like" else -1
+
+    AnswerLike.objects.update_or_create(
+        user=request.user.profile,
+        answer=answer,
+        defaults={"value": value},
+    )
+
+    rating = (
+        AnswerLike.objects.filter(answer=answer)
+        .aggregate(s=models.Sum("value"))["s"]
+        or 0
+    )
+
+    answer.rating = rating
+    answer.save(update_fields=["rating"])
+
+    return JsonResponse({"rating": rating})
+
+@require_POST
+@login_required(login_url="/login/")
+def ajax_set_correct(request):
+    qid = request.POST.get("question_id")
+    aid = request.POST.get("answer_id")
+
+    if not qid or not aid:
+        return JsonResponse({"error": "bad_ids"}, status=400)
+
+    question = get_object_or_404(Question, pk=qid)
+
+    if question.author_id != request.user.profile.id:
+        return JsonResponse({"error": "forbidden"}, status=403)
+
+    answer = get_object_or_404(Answer, pk=aid, question=question)
+
+    with transaction.atomic():
+        if answer.is_correct:
+            answer.is_correct = False
+            answer.save(update_fields=["is_correct"])
+            return JsonResponse({"ok": True, "answer_id": answer.id, "is_correct": False})
+
+        Answer.objects.filter(question=question, is_correct=True).update(is_correct=False)
+        answer.is_correct = True
+        answer.save(update_fields=["is_correct"])
+
+    return JsonResponse({"ok": True, "answer_id": answer.id, "is_correct": True})
+

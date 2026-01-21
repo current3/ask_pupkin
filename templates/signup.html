@@ -1,72 +1,131 @@
 {% extends "base.html" %}
 {% block content %}
 
-<h2 class="mb-3 border-bottom pb-2">Registration</h2>
+<div class="container" style="max-width: 520px;">
 
-{% if form.errors %}
-<div class="text-danger mb-3">
-    Sorry, some fields are filled incorrectly.
-</div>
-{% endif %}
+  <div class="card shadow-sm">
+    <div class="card-body">
 
-<form method="post" enctype="multipart/form-data" novalidate>
-    {% csrf_token %}
-
-    {% if form.non_field_errors %}
-        <div class="text-danger mb-3">
-            {{ form.non_field_errors }}
+      <div class="text-center mb-4">
+        <h3 class="mb-1">Create account</h3>
+        <div class="text-muted small">
+          Register to ask questions, vote and mark correct answers
         </div>
-    {% endif %}
+      </div>
 
-    <div class="mb-3">
-        <label class="form-label">Login</label>
-        {{ form.username }}
-        {% if form.username.errors %}
-            <div class="small text-danger">{{ form.username.errors|striptags }}</div>
+      {% if form.errors %}
+        <div class="alert alert-danger py-2">
+          Please check the fields below.
+        </div>
+      {% endif %}
+
+      <form method="post" enctype="multipart/form-data" novalidate>
+        {% csrf_token %}
+
+        {% if form.non_field_errors %}
+          <div class="alert alert-danger py-2">
+            {{ form.non_field_errors }}
+          </div>
         {% endif %}
-    </div>
 
-    <div class="mb-3">
-        <label class="form-label">Email</label>
-        {{ form.email }}
-        {% if form.email.errors %}
-            <div class="small text-danger">{{ form.email.errors|striptags }}</div>
-        {% endif %}
-    </div>
+        <div class="row g-3">
 
-    <div class="mb-3">
-        <label class="form-label">NickName</label>
-        {{ form.nick }}
-        {% if form.nick.errors %}
-            <div class="small text-danger">{{ form.nick.errors|striptags }}</div>
-        {% endif %}
-    </div>
+          <div class="col-12">
+            <label class="form-label fw-semibold">Login</label>
+            {{ form.username }}
+            {% if form.username.errors %}
+              <div class="small text-danger mt-1">{{ form.username.errors|striptags }}</div>
+            {% endif %}
+          </div>
 
-    <div class="mb-3">
-        <label class="form-label">Password</label>
-        {{ form.password1 }}
-        {% if form.password1.errors %}
-            <div class="small text-danger">{{ form.password1.errors|striptags }}</div>
-        {% endif %}
-    </div>
+          <div class="col-12">
+            <label class="form-label fw-semibold">Email</label>
+            {{ form.email }}
+            {% if form.email.errors %}
+              <div class="small text-danger mt-1">{{ form.email.errors|striptags }}</div>
+            {% endif %}
+          </div>
 
-    <div class="mb-3">
-        <label class="form-label">Repeat password</label>
-        {{ form.password2 }}
-        {% if form.password2.errors %}
-            <div class="small text-danger">{{ form.password2.errors|striptags }}</div>
-        {% endif %}
-    </div>
+          <div class="col-12">
+            <label class="form-label fw-semibold">Nickname</label>
+            {{ form.nick }}
+            {% if form.nick.errors %}
+              <div class="small text-danger mt-1">{{ form.nick.errors|striptags }}</div>
+            {% endif %}
+          </div>
 
-    <div class="mb-3">
-        <label class="form-label">Upload avatar</label>
-        {{ form.avatar }}
-        {% if form.avatar.errors %}
-            <div class="small text-danger">{{ form.avatar.errors|striptags }}</div>
-        {% endif %}
-    </div>
+          <div class="col-12 col-md-6">
+            <label class="form-label fw-semibold">Password</label>
+            {{ form.password1 }}
+            {% if form.password1.errors %}
+              <div class="small text-danger mt-1">{{ form.password1.errors|striptags }}</div>
+            {% endif %}
+          </div>
 
-    <button class="btn btn-primary" type="submit">Register!</button>
-</form>
+          <div class="col-12 col-md-6">
+            <label class="form-label fw-semibold">Repeat password</label>
+            {{ form.password2 }}
+            {% if form.password2.errors %}
+              <div class="small text-danger mt-1">{{ form.password2.errors|striptags }}</div>
+            {% endif %}
+          </div>
+
+          <div class="col-12">
+            <label class="form-label fw-semibold">Avatar (optional)</label>
+
+            <div class="d-flex align-items-center gap-3">
+              <img id="avatar-preview"
+                   src="/static/img/avatar.png"
+                   class="rounded-circle border"
+                   style="width:56px;height:56px;object-fit:cover;"
+                   alt="avatar">
+
+              <div class="flex-grow-1">
+                {{ form.avatar }}
+                {% if form.avatar.errors %}
+                  <div class="small text-danger mt-1">{{ form.avatar.errors|striptags }}</div>
+                {% endif %}
+                <div class="form-text">
+                  You can skip this — default avatar will be used.
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+        <div class="d-grid mt-4">
+          <button class="btn btn-primary" type="submit">Register</button>
+        </div>
+
+        <div class="text-center small mt-3">
+          Already have an account?
+          <a href="/login/?continue={{ request.path }}">Log in</a>
+        </div>
+
+      </form>
+
+    </div>
+  </div>
+
+</div>
+
+<script>
+  document.querySelectorAll('input[type="text"], input[type="email"], input[type="password"], input[type="file"]').forEach(el => {
+    if (!el.classList.contains('form-control')) el.classList.add('form-control');
+  });
+
+  const fileInput = document.querySelector('input[type="file"][name="avatar"]');
+  const preview = document.getElementById('avatar-preview');
+
+  if (fileInput && preview) {
+    fileInput.addEventListener('change', () => {
+      const f = fileInput.files && fileInput.files[0];
+      if (!f) return;
+      const url = URL.createObjectURL(f);
+      preview.src = url;
+    });
+  }
+</script>
 
 {% endblock %}

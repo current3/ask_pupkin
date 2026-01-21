@@ -1,48 +1,79 @@
 {% extends "base.html" %}
 {% block content %}
 
-<h2 class="mb-3 border-bottom pb-2">Log In</h2>
+<div class="container" style="max-width: 420px;">
 
-{# Плашка ошибки только если есть ошибки формы #}
-{% if form.errors %}
-<div class="text-danger mb-3">
-    Sorry, wrong login or password!
-</div>
-{% endif %}
+  <div class="card shadow-sm">
+    <div class="card-body">
 
-<form method="post" novalidate>
-    {% csrf_token %}
-
-    {# Общие ошибки формы (например "Неверный логин или пароль") #}
-    {% if form.non_field_errors %}
-        <div class="text-danger mb-3">
-            {{ form.non_field_errors }}
+      <div class="text-center mb-4">
+        <h3 class="mb-1">Welcome back</h3>
+        <div class="text-muted small">
+          Log in to continue asking and answering questions
         </div>
-    {% endif %}
+      </div>
 
-    <div class="mb-3">
-        <label class="form-label">Login</label>
-        {{ form.username }}
-        {% if form.username.errors %}
-            <div class="small text-danger">{{ form.username.errors|striptags }}</div>
+      {% if form.errors %}
+        <div class="alert alert-danger py-2">
+          Invalid login or password.
+        </div>
+      {% endif %}
+
+      <form method="post" novalidate>
+        {% csrf_token %}
+
+        {% if form.non_field_errors %}
+          <div class="alert alert-danger py-2">
+            {{ form.non_field_errors }}
+          </div>
         {% endif %}
-    </div>
 
-    <div class="mb-3">
-        <label class="form-label">Password</label>
-        {{ form.password }}
-        {% if form.password.errors %}
-            <div class="small text-danger">{{ form.password.errors|striptags }}</div>
+        <div class="mb-3">
+          <label class="form-label fw-semibold">Login</label>
+          {{ form.username }}
+          {% if form.username.errors %}
+            <div class="small text-danger mt-1">
+              {{ form.username.errors|striptags }}
+            </div>
+          {% endif %}
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label fw-semibold">Password</label>
+          {{ form.password }}
+          {% if form.password.errors %}
+            <div class="small text-danger mt-1">
+              {{ form.password.errors|striptags }}
+            </div>
+          {% endif %}
+        </div>
+
+        {% if continue %}
+          <input type="hidden" name="continue" value="{{ continue }}">
         {% endif %}
+
+        <div class="d-grid mb-3">
+          <button class="btn btn-primary" type="submit">
+            Log in
+          </button>
+        </div>
+
+        <div class="text-center small">
+          Don’t have an account?
+          <a href="/signup/">Create one</a>
+        </div>
+
+      </form>
+
     </div>
+  </div>
 
-    {# continue — чтобы после логина вернуться туда, куда хотел пользователь #}
-    {% if continue %}
-        <input type="hidden" name="continue" value="{{ continue }}">
-    {% endif %}
+</div>
 
-    <button class="btn btn-primary mb-2" type="submit">Log in!</button><br>
-    <a href="/signup/">create new account</a>
-</form>
+<script>
+  document.querySelectorAll('input[type="text"], input[type="password"]').forEach(el => {
+    if (!el.classList.contains('form-control')) el.classList.add('form-control');
+  });
+</script>
 
 {% endblock %}
