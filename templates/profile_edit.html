@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>Редактировать профиль</h1>
+
+<form method="post" enctype="multipart/form-data">
+  {% csrf_token %}
+
+  {{ form.non_field_errors }}
+
+  <div>
+    {{ form.email.label_tag }}<br>
+    {{ form.email }}
+    {{ form.email.errors }}
+  </div>
+
+  <div>
+    {{ form.nick.label_tag }}<br>
+    {{ form.nick }}
+    {{ form.nick.errors }}
+  </div>
+
+  <div>
+    {{ form.avatar.label_tag }}<br>
+    {{ form.avatar }}
+    {{ form.avatar.errors }}
+  </div>
+
+  <button type="submit">Сохранить</button>
+</form>
+{% endblock %}

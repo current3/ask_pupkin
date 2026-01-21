@@ -24,14 +24,29 @@
             </form>
 
             <div class="d-flex align-items-center">
+                {% if user.is_authenticated %}
+                    {% if user.profile.avatar %}
+                        <img src="{{ user.profile.avatar.url }}" class="avatar-small" alt="avatar">
+                    {% else %}
+                        <img src="/static/img/avatar.png" class="avatar-small" alt="avatar">
+                    {% endif %}
 
-                <img src="/static/img/avatar.png" class="avatar-small" alt="avatar">
+                    <div class="small">
+                        <a href="/profile/edit/" class="user-link me-2">
+                            {{ user.profile.nick|default:user.username }}
+                        </a>
+                        <a href="/logout/" class="user-link">logout</a>
+                    </div>
+                {% else %}
+                    <img src="/static/img/avatar.png" class="avatar-small" alt="avatar">
 
-                <div class="small">
-                    <a href="/login/" class="user-link me-2">login</a>
-                    <a href="/signup/" class="user-link">register</a>
-                </div>
+                    <div class="small">
+                        <a href="/login/?continue={{ request.path }}" class="user-link me-2">login</a>
+                        <a href="/signup/" class="user-link">register</a>
+                    </div>
+                {% endif %}
             </div>
+
 
         </div>
     </div>

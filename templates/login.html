@@ -3,22 +3,45 @@
 
 <h2 class="mb-3 border-bottom pb-2">Log In</h2>
 
+{# Плашка ошибки только если есть ошибки формы #}
+{% if form.errors %}
 <div class="text-danger mb-3">
-    Sorry, wrong password!
+    Sorry, wrong login or password!
 </div>
+{% endif %}
 
-<form>
+<form method="post" novalidate>
+    {% csrf_token %}
+
+    {# Общие ошибки формы (например "Неверный логин или пароль") #}
+    {% if form.non_field_errors %}
+        <div class="text-danger mb-3">
+            {{ form.non_field_errors }}
+        </div>
+    {% endif %}
+
     <div class="mb-3">
         <label class="form-label">Login</label>
-        <input type="text" class="form-control" placeholder="Enter your login here">
+        {{ form.username }}
+        {% if form.username.errors %}
+            <div class="small text-danger">{{ form.username.errors|striptags }}</div>
+        {% endif %}
     </div>
 
     <div class="mb-3">
         <label class="form-label">Password</label>
-        <input type="password" class="form-control" value="12345678">
+        {{ form.password }}
+        {% if form.password.errors %}
+            <div class="small text-danger">{{ form.password.errors|striptags }}</div>
+        {% endif %}
     </div>
 
-    <button class="btn btn-primary mb-2">Log in!</button><br>
+    {# continue — чтобы после логина вернуться туда, куда хотел пользователь #}
+    {% if continue %}
+        <input type="hidden" name="continue" value="{{ continue }}">
+    {% endif %}
+
+    <button class="btn btn-primary mb-2" type="submit">Log in!</button><br>
     <a href="/signup/">create new account</a>
 </form>
 

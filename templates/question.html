@@ -8,23 +8,31 @@
     </p>
     <div class="small">
         Tags:
-        {% for t in question.tags %}
-            <a href="/tag/{{ t }}/" class="text-decoration-none">{{ t }}</a>{% if not forloop.last %}, {% endif %}
+        {# Если tags — ManyToMany, правильно .all #}
+        {% for t in question.tags.all %}
+            <a href="/tag/{{ t.name|default:t }}/" class="text-decoration-none">
+                {{ t.name|default:t }}
+            </a>{% if not forloop.last %}, {% endif %}
+        {% empty %}
+            <span class="text-muted">no tags</span>
         {% endfor %}
     </div>
 </div>
 
+{# Ответы (answers должен быть page_obj или queryset) #}
 {% for a in answers %}
-<div class="mb-3 p-3 border">
+<div class="mb-3 p-3 border" id="answer-{{ a.id }}">
     <div class="d-flex">
         <div class="me-3 text-center" style="width:60px;">
             <img src="/static/img/avatar.png"
                  class="border mb-2"
                  style="width:40px;height:40px;object-fit:cover;" alt="avatar">
+
             <div class="border py-1 mb-1">{{ a.rating|default:"5" }}</div>
+
             <div class="small">
-                <button class="btn btn-light border w-100 mb-1">+</button>
-                <button class="btn btn-light border w-100">-</button>
+                <button class="btn btn-light border w-100 mb-1" type="button">+</button>
+                <button class="btn btn-light border w-100" type="button">-</button>
             </div>
         </div>
 
@@ -39,17 +47,36 @@
         </div>
     </div>
 </div>
+{% empty %}
+<p class="text-muted">No answers yet.</p>
 {% endfor %}
 
+{# пагинатор как у тебя был #}
 {% include "paginator.html" with page_obj=answers %}
 
 <div class="mt-4 border-top pt-3">
     <h5 class="mb-3">Enter your answer here.</h5>
-    <form>
+
+    {# Ошибка — только когда форма невалидна #}
+    {% if form.errors %}
+        <div class="text-danger mb-2">Sorry, your answer is invalid.</div>
+    {% endif %}
+
+    <form method="post" novalidate>
+        {% csrf_token %}
+
+        {% if form.non_field_errors %}
+            <div class="text-danger mb-2">{{ form.non_field_errors }}</div>
+        {% endif %}
+
         <div class="mb-3">
-            <textarea class="form-control" rows="4" placeholder="Enter your answer here."></textarea>
+            {{ form.text }}
+            {% if form.text.errors %}
+                <div class="small text-danger">{{ form.text.errors|striptags }}</div>
+            {% endif %}
         </div>
-        <button class="btn btn-primary">Answer</button>
+
+        <button class="btn btn-primary" type="submit">Answer</button>
     </form>
 </div>
 

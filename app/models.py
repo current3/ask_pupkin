@@ -1,15 +1,15 @@
 from django.db import models
 from django.contrib.auth.models import User
 from django.utils import timezone
+from django.conf import settings
 
 class Profile(models.Model):
-    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='profile')
-    avatar = models.ImageField(upload_to='avatars/', blank=True, null=True)
-    nickname = models.CharField(max_length=50, blank=True)
+    user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="profile")
+    nick = models.CharField(max_length=64, unique=True)
+    avatar = models.ImageField(upload_to="avatars/", blank=True, null=True)
 
-    def __str__(self):
-        return self.nickname or self.user.username
-
+    def __str__(self) -> str:
+        return self.nick
 
 class Tag(models.Model):
     name = models.CharField(max_length=50, unique=True)
