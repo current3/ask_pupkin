@@ -16,5 +16,6 @@ urlpatterns = [
     path("ajax/question/vote/", views.ajax_question_vote, name="ajax_question_vote"),
     path("ajax/answer/vote/", views.ajax_answer_vote, name="ajax_answer_vote"),
     path("ajax/answer/correct/", views.ajax_set_correct, name="ajax_set_correct"),
+    path("search/suggest/", views.search_suggest, name="search_suggest"),
 ]
 

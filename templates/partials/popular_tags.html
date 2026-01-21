@@ -1,0 +1,15 @@
+<div class="side-card mb-4">
+  <div class="side-title">Popular Tags</div>
+
+  {% if popular_tags %}
+    <div class="small">
+      {% for t in popular_tags %}
+        <a class="me-2 text-decoration-none" href="/tag/{{ t.name }}/">
+          {{ t.name }}
+        </a>
+      {% endfor %}
+    </div>
+  {% else %}
+    <div class="small text-muted">(empty)</div>
+  {% endif %}
+</div>

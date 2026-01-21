@@ -1,3 +1,4 @@
+{% load sidebar %}
 <!DOCTYPE html>
 <html lang="ru">
 <head>
@@ -11,7 +12,6 @@
   <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
 
   <style>
-    /* Небольшие дефолт-стили, если custom.css не покрывает */
     .brand {
       font-weight: 800;
       letter-spacing: .3px;
@@ -28,12 +28,8 @@
       border-radius: 50%;
       border: 1px solid rgba(0,0,0,.15);
     }
-    .user-link {
-      text-decoration: none;
-    }
-    .user-link:hover {
-      text-decoration: underline;
-    }
+    .user-link { text-decoration: none; }
+    .user-link:hover { text-decoration: underline; }
     .side-title {
       font-weight: 700;
       margin-bottom: .5rem;
@@ -57,9 +53,24 @@
         <span>Ask</span>Urazgaliev
       </a>
 
-      <form class="d-flex flex-grow-1" method="get" action="/" role="search">
-        <input class="form-control me-2" type="search" placeholder="Search…" name="q" value="{{ request.GET.q|default:'' }}">
+      <form class="d-flex flex-grow-1 position-relative"
+            method="get"
+            action="/"
+            role="search"
+            autocomplete="off">
+        <input id="search-input"
+               class="form-control me-2"
+               type="search"
+               placeholder="Search…"
+               name="q"
+               value="{{ request.GET.q|default:'' }}">
+
         <button class="btn btn-outline-primary" type="submit">Search</button>
+
+        <div id="search-suggest"
+             class="list-group position-absolute"
+             style="top: 100%; left: 0; right: 0; z-index: 2000; display:none;">
+        </div>
       </form>
 
       <a href="/ask/" class="btn btn-primary d-none d-md-inline-flex">ASK!</a>
@@ -119,35 +130,8 @@
 
     <aside class="col-md-3">
       <div class="position-sticky" style="top: 16px;">
-
-        <div class="side-card mb-4">
-          <div class="side-title">Popular Tags</div>
-          <div class="small">
-            <a class="me-2 text-decoration-none" href="/tag/python/">python</a>
-            <a class="me-2 text-decoration-none" href="/tag/django/">django</a>
-            <a class="me-2 text-decoration-none" href="/tag/ajax/">ajax</a>
-            <a class="me-2 text-decoration-none" href="/tag/postgresql/">postgresql</a>
-            <a class="me-2 text-decoration-none" href="/tag/html/">html</a>
-          </div>
-          <div class="small text-muted mt-2">
-            (реальные теги из БД)
-          </div>
-        </div>
-
-        <div class="side-card mb-4">
-          <div class="side-title">Best Members</div>
-          <div class="d-flex flex-column small gap-1">
-            <a class="text-decoration-none" href="#">Mr. Freeman</a>
-            <a class="text-decoration-none" href="#">Dr. House</a>
-            <a class="text-decoration-none" href="#">Bender</a>
-            <a class="text-decoration-none" href="#">Queen Victoria</a>
-            <a class="text-decoration-none" href="#">V. Pupkin</a>
-          </div>
-          <div class="small text-muted mt-2">
-            (сделать из рейтинга)
-          </div>
-        </div>
-
+        {% popular_tags %}
+        {% best_members %}
       </div>
     </aside>
 
@@ -155,6 +139,54 @@
 </main>
 
 <script src="/static/js/bootstrap.bundle.min.js"></script>
+
+<script>
+(function() {
+  const input = document.getElementById("search-input");
+  const box = document.getElementById("search-suggest");
+  if (!input || !box) return;
+
+  let timer = null;
+
+  function hide() {
+    box.style.display = "none";
+    box.innerHTML = "";
+  }
+
+  function show(results) {
+    box.innerHTML = "";
+    if (!results.length) return hide();
+
+    results.forEach(r => {
+      const a = document.createElement("a");
+      a.className = "list-group-item list-group-item-action";
+      a.href = "/question/" + r.id + "/";
+      a.textContent = r.title;
+      box.appendChild(a);
+    });
+
+    box.style.display = "block";
+  }
+
+  input.addEventListener("input", function() {
+    const q = input.value.trim();
+
+    if (timer) clearTimeout(timer);
+    timer = setTimeout(() => {
+      if (q.length < 2) return hide();
+
+      fetch("/search/suggest/?q=" + encodeURIComponent(q))
+        .then(r => r.json())
+        .then(data => show(data.results || []))
+        .catch(() => hide());
+    }, 300);
+  });
+
+  document.addEventListener("click", function(e) {
+    if (!box.contains(e.target) && e.target !== input) hide();
+  });
+})();
+</script>
 
 </body>
 </html>

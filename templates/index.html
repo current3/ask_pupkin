@@ -74,7 +74,6 @@
         </div>
       </div>
 
-      {# ================== CONTENT ================== #}
       <div class="flex-grow-1">
 
         <div class="d-flex align-items-start justify-content-between gap-2">
@@ -87,6 +86,10 @@
             answers: {{ q.answers.count }}
           </span>
         </div>
+        <div class="small text-muted mb-2">
+          by <strong>{{ q.author.nick }}</strong> · {{ q.created_at|date:"d.m.Y H:i" }}
+        </div>
+
 
         <p class="text-muted mb-2"
            style="

@@ -56,6 +56,10 @@
 
       <div class="flex-grow-1">
         <h3 class="mb-2">{{ question.title }}</h3>
+        <div class="small text-muted mb-2">
+          by <strong>{{ question.author.nick }}</strong>
+          {% if question.created_at %}· {{ question.created_at|date:"d.m.Y H:i" }}{% endif %}
+        </div>
         <p class="text-muted mb-3" style="white-space: pre-wrap;">{{ question.text }}</p>
 
         <div class="d-flex flex-wrap align-items-center gap-2">
@@ -84,90 +88,93 @@
   </span>
 </div>
 
-{% for a in answers %}
-<div class="card shadow-sm mb-3 {% if a.is_correct %}border border-success{% endif %}" id="answer-{{ a.id }}">
-  <div class="card-body">
-    <div class="d-flex gap-3">
+{# ✅ ВАЖНО: контейнер для realtime вставки #}
+<div id="answers">
+  {% for a in answers %}
+  <div class="card shadow-sm mb-3 {% if a.is_correct %}border border-success{% endif %}" id="answer-{{ a.id }}">
+    <div class="card-body">
+      <div class="d-flex gap-3">
 
-      <div class="text-center" style="width: 92px;">
-        <div class="btn-group-vertical w-100" role="group" aria-label="answer vote">
+        <div class="text-center" style="width: 92px;">
+          <div class="btn-group-vertical w-100" role="group" aria-label="answer vote">
 
-          {% if user.is_authenticated %}
-            <button id="a-like-{{ a.id }}"
-                    class="btn btn-outline-success btn-sm"
-                    style="height:34px"
-                    type="button"
-                    onclick="voteAnswer({{ a.id }}, 'like')">+</button>
-          {% else %}
-            <a class="btn btn-outline-success btn-sm"
-               style="height:34px"
-               href="/login/?continue={{ request.path }}">+</a>
-          {% endif %}
+            {% if user.is_authenticated %}
+              <button id="a-like-{{ a.id }}"
+                      class="btn btn-outline-success btn-sm"
+                      style="height:34px"
+                      type="button"
+                      onclick="voteAnswer({{ a.id }}, 'like')">+</button>
+            {% else %}
+              <a class="btn btn-outline-success btn-sm"
+                 style="height:34px"
+                 href="/login/?continue={{ request.path }}">+</a>
+            {% endif %}
 
-          <div id="answer-rating-{{ a.id }}"
-               class="border rounded my-1 fw-semibold"
-               style="height:34px;width:100%;display:flex;align-items:center;justify-content:center;text-align:center;padding:0;font-variant-numeric:tabular-nums;background:#f8f9fa;">
-            {{ a.rating }}
+            <div id="answer-rating-{{ a.id }}"
+                 class="border rounded my-1 fw-semibold"
+                 style="height:34px;width:100%;display:flex;align-items:center;justify-content:center;text-align:center;padding:0;font-variant-numeric:tabular-nums;background:#f8f9fa;">
+              {{ a.rating }}
+            </div>
+
+            {% if user.is_authenticated %}
+              <button id="a-dislike-{{ a.id }}"
+                      class="btn btn-outline-danger btn-sm"
+                      style="height:34px"
+                      type="button"
+                      onclick="voteAnswer({{ a.id }}, 'dislike')">−</button>
+            {% else %}
+              <a class="btn btn-outline-danger btn-sm"
+                 style="height:34px"
+                 href="/login/?continue={{ request.path }}">−</a>
+            {% endif %}
           </div>
 
-          {% if user.is_authenticated %}
-            <button id="a-dislike-{{ a.id }}"
-                    class="btn btn-outline-danger btn-sm"
-                    style="height:34px"
-                    type="button"
-                    onclick="voteAnswer({{ a.id }}, 'dislike')">−</button>
-          {% else %}
-            <a class="btn btn-outline-danger btn-sm"
-               style="height:34px"
-               href="/login/?continue={{ request.path }}">−</a>
-          {% endif %}
+          <div class="mt-3">
+            {% if a.author.avatar %}
+              <img src="{{ a.author.avatar.url }}"
+                   class="rounded-circle border"
+                   style="width:46px;height:46px;object-fit:cover;"
+                   alt="avatar">
+            {% else %}
+              <img src="/static/img/avatar.png"
+                   class="rounded-circle border"
+                   style="width:46px;height:46px;object-fit:cover;"
+                   alt="avatar">
+            {% endif %}
+          </div>
         </div>
 
-        <div class="mt-3">
-          {% if a.author.avatar %}
-            <img src="{{ a.author.avatar.url }}"
-                 class="rounded-circle border"
-                 style="width:46px;height:46px;object-fit:cover;"
-                 alt="avatar">
-          {% else %}
-            <img src="/static/img/avatar.png"
-                 class="rounded-circle border"
-                 style="width:46px;height:46px;object-fit:cover;"
-                 alt="avatar">
-          {% endif %}
-        </div>
-      </div>
+        <div class="flex-grow-1">
+          <div class="d-flex align-items-start justify-content-between gap-2">
+            <div class="small text-muted">
+              by <strong>{{ a.author.nick }}</strong> · {{ a.created_at|date:"d.m.Y H:i" }}
+            </div>
 
-      <div class="flex-grow-1">
-        <div class="d-flex align-items-start justify-content-between gap-2">
-          <div class="small text-muted">
-            by <strong>{{ a.author.nick }}</strong> · {{ a.created_at|date:"d.m.Y H:i" }}
+            <span id="correct-badge-{{ a.id }}"
+                  class="badge bg-success correct-badge {% if not a.is_correct %}d-none{% endif %}">
+              Correct
+            </span>
           </div>
 
-          <span id="correct-badge-{{ a.id }}"
-                class="badge bg-success correct-badge {% if not a.is_correct %}d-none{% endif %}">
-            Correct
-          </span>
+          <p class="mt-2 mb-3" style="white-space: pre-wrap;">{{ a.text }}</p>
+
+          {% if user.is_authenticated and user.profile.id == question.author_id %}
+            <button id="correct-btn-{{ a.id }}"
+                    class="btn btn-sm correct-btn {% if a.is_correct %}btn-success{% else %}btn-outline-secondary{% endif %}"
+                    type="button"
+                    onclick="setCorrect({{ question.id }}, {{ a.id }})">
+              {% if a.is_correct %}Correct{% else %}Mark correct{% endif %}
+            </button>
+          {% endif %}
         </div>
 
-        <p class="mt-2 mb-3" style="white-space: pre-wrap;">{{ a.text }}</p>
-
-        {% if user.is_authenticated and user.profile.id == question.author_id %}
-          <button id="correct-btn-{{ a.id }}"
-                  class="btn btn-sm correct-btn {% if a.is_correct %}btn-success{% else %}btn-outline-secondary{% endif %}"
-                  type="button"
-                  onclick="setCorrect({{ question.id }}, {{ a.id }})">
-            {% if a.is_correct %}Correct{% else %}Mark correct{% endif %}
-          </button>
-        {% endif %}
       </div>
-
     </div>
   </div>
+  {% empty %}
+  <div class="alert alert-light border">No answers yet.</div>
+  {% endfor %}
 </div>
-{% empty %}
-<div class="alert alert-light border">No answers yet.</div>
-{% endfor %}
 
 {% include "paginator.html" with page_obj=answers %}
 
@@ -197,6 +204,28 @@
     {% endif %}
   </div>
 </div>
+
+<script src="https://unpkg.com/centrifuge@5/dist/centrifuge.min.js"></script>
+<script>
+(function() {
+  const wsUrl = "{{ centrifugo_ws_url|default:'' }}";
+  const token = "{{ centrifugo_token|default:'' }}";
+  const channel = "{{ centrifugo_channel|default:'' }}";
+  if (!wsUrl || !token || !channel) return;
+
+  const centrifuge = new Centrifuge(wsUrl, { token: token });
+  const sub = centrifuge.newSubscription(channel);
+
+  sub.on("publication", function(ctx) {
+    const box = document.querySelector("#answers");
+    if (!box) return;
+    box.insertAdjacentHTML("beforeend", ctx.data.html);
+  });
+
+  sub.subscribe();
+  centrifuge.connect();
+})();
+</script>
 
 <script>
 function getCookie(name) {

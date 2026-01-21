@@ -11,9 +11,26 @@ from django.views.decorators.http import require_POST
 from django.db import transaction
 from django.db import models
 
+from django.conf import settings
+from django.template.loader import render_to_string
+
+from .centrifugo import make_centrifugo_token, centrifugo_publish
 from .forms import AnswerForm, AskForm, LoginForm, ProfileEditForm, SignupForm
 from .models import Answer, Question, Tag, QuestionLike, AnswerLike
 
+from django.db.models import Q
+
+def search_suggest(request):
+    q = (request.GET.get("q") or "").strip()
+    if len(q) < 2:
+        return JsonResponse({"results": []})
+
+    qs = Question.objects.all()
+
+    qs = qs.filter(Q(title__icontains=q) | Q(text__icontains=q)).order_by("-rating")[:10]
+
+    results = [{"id": obj.id, "title": obj.title} for obj in qs]
+    return JsonResponse({"results": results})
 
 def paginate(objects, request, per_page=20):
     page_number = request.GET.get("page", 1)
@@ -125,7 +142,12 @@ PER_PAGE = 10
 def question_view(request, id):
     question = get_object_or_404(Question, pk=id)
 
-    answers_qs = Answer.objects.filter(question=question).order_by("id")
+    answers_qs = (
+        Answer.objects.filter(question=question)
+        .select_related("author", "author__user")
+        .order_by("id")
+    )
+
     paginator = Paginator(answers_qs, PER_PAGE)
     page_number = request.GET.get("page", 1)
     answers_page = paginator.get_page(page_number)
@@ -142,11 +164,23 @@ def question_view(request, id):
                 text=form.cleaned_data["text"],
             )
 
-            total = answers_qs.count() + 1
+            html = render_to_string(
+                "partials/answer_item.html",
+                {"answer": ans},
+                request=request,
+            )
+            centrifugo_publish(
+                channel=f"question:{question.id}",
+                data={"html": html, "answer_id": ans.id},
+            )
+
+            total = answers_qs.count() + 1 
             new_page = math.ceil(total / PER_PAGE)
             return redirect(f"/question/{question.id}/?page={new_page}#answer-{ans.id}")
     else:
         form = AnswerForm()
+
+    user_id = request.user.profile.id if request.user.is_authenticated else 0
 
     return render(
         request,
@@ -155,8 +189,13 @@ def question_view(request, id):
             "question": question,
             "answers": answers_page,
             "form": form,
+
+            "centrifugo_ws_url": settings.CENTRIFUGO_WS_URL,
+            "centrifugo_token": make_centrifugo_token(user_id),
+            "centrifugo_channel": f"question:{question.id}",
         },
     )
+
 
 @require_POST
 @login_required(login_url="/login/")
@@ -221,6 +260,7 @@ def ajax_answer_vote(request):
 
     return JsonResponse({"rating": rating})
 
+
 @require_POST
 @login_required(login_url="/login/")
 def ajax_set_correct(request):
@@ -248,4 +288,3 @@ def ajax_set_correct(request):
         answer.save(update_fields=["is_correct"])
 
     return JsonResponse({"ok": True, "answer_id": answer.id, "is_correct": True})
-

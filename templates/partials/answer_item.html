@@ -1,0 +1,80 @@
+<div class="card shadow-sm mb-3 {% if answer.is_correct %}border border-success{% endif %}" id="answer-{{ answer.id }}">
+  <div class="card-body">
+    <div class="d-flex gap-3">
+
+      <div class="text-center" style="width: 92px;">
+        <div class="btn-group-vertical w-100" role="group" aria-label="answer vote">
+
+          {% if user.is_authenticated %}
+            <button id="a-like-{{ answer.id }}"
+                    class="btn btn-outline-success btn-sm"
+                    style="height:34px"
+                    type="button"
+                    onclick="voteAnswer({{ answer.id }}, 'like')">+</button>
+          {% else %}
+            <a class="btn btn-outline-success btn-sm"
+               style="height:34px"
+               href="/login/?continue={{ request.path }}">+</a>
+          {% endif %}
+
+          <div id="answer-rating-{{ answer.id }}"
+               class="border rounded my-1 fw-semibold"
+               style="height:34px;width:100%;display:flex;align-items:center;justify-content:center;text-align:center;padding:0;font-variant-numeric:tabular-nums;background:#f8f9fa;">
+            {{ answer.rating }}
+          </div>
+
+          {% if user.is_authenticated %}
+            <button id="a-dislike-{{ answer.id }}"
+                    class="btn btn-outline-danger btn-sm"
+                    style="height:34px"
+                    type="button"
+                    onclick="voteAnswer({{ answer.id }}, 'dislike')">−</button>
+          {% else %}
+            <a class="btn btn-outline-danger btn-sm"
+               style="height:34px"
+               href="/login/?continue={{ request.path }}">−</a>
+          {% endif %}
+        </div>
+
+        <div class="mt-3">
+          {% if answer.author.avatar %}
+            <img src="{{ answer.author.avatar.url }}"
+                 class="rounded-circle border"
+                 style="width:46px;height:46px;object-fit:cover;"
+                 alt="avatar">
+          {% else %}
+            <img src="/static/img/avatar.png"
+                 class="rounded-circle border"
+                 style="width:46px;height:46px;object-fit:cover;"
+                 alt="avatar">
+          {% endif %}
+        </div>
+      </div>
+
+      <div class="flex-grow-1">
+        <div class="d-flex align-items-start justify-content-between gap-2">
+          <div class="small text-muted">
+            by <strong>{{ answer.author.nick }}</strong> · {{ answer.created_at|date:"d.m.Y H:i" }}
+          </div>
+
+          <span id="correct-badge-{{ answer.id }}"
+                class="badge bg-success correct-badge {% if not answer.is_correct %}d-none{% endif %}">
+            Correct
+          </span>
+        </div>
+
+        <p class="mt-2 mb-3" style="white-space: pre-wrap;">{{ answer.text }}</p>
+
+        {% if user.is_authenticated and user.profile.id == answer.question.author_id %}
+          <button id="correct-btn-{{ answer.id }}"
+                  class="btn btn-sm correct-btn {% if answer.is_correct %}btn-success{% else %}btn-outline-secondary{% endif %}"
+                  type="button"
+                  onclick="setCorrect({{ answer.question.id }}, {{ answer.id }})">
+            {% if answer.is_correct %}Correct{% else %}Mark correct{% endif %}
+          </button>
+        {% endif %}
+      </div>
+
+    </div>
+  </div>
+</div>

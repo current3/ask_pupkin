@@ -1,0 +1,13 @@
+<div class="side-card mb-4">
+  <div class="side-title">Best Members</div>
+
+  {% if best_members %}
+    <div class="d-flex flex-column small gap-1">
+      {% for u in best_members %}
+        <a class="text-decoration-none" href="#">{{ u.nick }}</a>
+      {% endfor %}
+    </div>
+  {% else %}
+    <div class="small text-muted">(empty)</div>
+  {% endif %}
+</div>

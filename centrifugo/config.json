@@ -1,0 +1,9 @@
+{
+  "port": 8001,
+  "token_hmac_secret_key": "SECRET123",
+  "api_key": "API123",
+  "allowed_origins": ["http://127.0.0.1:8000", "http://localhost:8000"],
+  "client_insecure": true,
+  "log_level": "debug"
+}
+

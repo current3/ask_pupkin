@@ -132,3 +132,17 @@ MEDIA_ROOT = BASE_DIR / "uploads"
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+CENTRIFUGO_API_URL = "http://localhost:8001/api"
+CENTRIFUGO_WS_URL = "ws://localhost:8001/connection/websocket"
+CENTRIFUGO_API_KEY = "API123"
+CENTRIFUGO_TOKEN_SECRET = "SECRET123"
+
+
+CACHES = {
+    "default": {
+        "BACKEND": "django.core.cache.backends.filebased.FileBasedCache",
+        "LOCATION": BASE_DIR / "cache",
+        "TIMEOUT": None,
+    }
+}
